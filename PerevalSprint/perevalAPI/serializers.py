@@ -42,6 +42,27 @@ class PerevalSerializer(WritableNestedModelSerializer):  # автоматиче�
             'id', 'beauty_title', 'title', 'other_titles', 'connect', 'add_data',
             'user', 'coords', 'level', 'images', 'status',
         )
+    def create(self, validated_data, **kwargs):
+        tourist_id = validated_data.pop('tourist_id')
+        coord_id = validated_data.pop('coord_id')
+        level = validated_data.pop('level')
+        images = validated_data.pop('images')
+        user = validated_data.pop('user')
+
+        user, created = Users.object.get_or_create(**user)
+        tourist_id, created = Users.object.get_or_create(**tourist_id)
+        coord_id = Coords.objects.create(**coord_id)
+        level = Levels.objects.create(**level)
+        pereval = Pereval.objects.create(**validated_data, tourist_id=tourist_id, coord_id=coord_id, level=level,
+                                         status="NW")
+
+        for i in images:
+            image = i.pop('image')
+            title = i.pop('title')
+            Images.objects.create(image=image, pereval_id=pereval, title=title)
+
+        return pereval
+
 
     def validate(self, data):
         if self.instance is not None:
@@ -57,3 +78,4 @@ class PerevalSerializer(WritableNestedModelSerializer):  # автоматиче�
             if data_user is not None and any(valudating_user_field):
                 raise serializers.ValidationError({"отклонено": "Нельзя менять данные пользователя"})
         return data
+
