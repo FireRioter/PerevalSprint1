@@ -4,9 +4,25 @@ from drf_writable_nested import WritableNestedModelSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
+    def save(self, **kwargs):
+        self.is_valid()
+        user = Users.objects.filter(email=self.validated_data.get('email'))
+
+        if user.exists():
+            return user.first()
+        else:
+            new_user = Users.objects.create(
+                email=self.validated_data.get('email'),
+                phone=self.validated_data.get('phone'),
+                fam=self.validated_data.get('fam'),
+                name=self.validated_data.get('name'),
+                otc=self.validated_data.get('otc'),
+            )
+            return new_user
+
     class Meta:
         model = Users
-        fields = "__all__"
+        fields = ['email', 'phone', 'fam', 'name', 'otc']
 
 
 class ImageSerializer(serializers.ModelSerializer):
